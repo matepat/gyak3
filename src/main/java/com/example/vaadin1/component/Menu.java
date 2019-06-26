@@ -7,8 +7,6 @@ public class Menu extends HorizontalLayout {
 
     public Menu() {
         buildAnchor("Kezdőlap", "/");
-        buildAnchor("Új kurzus", "/course");
-        buildAnchor("Új terem", "/room");
     }
 
     private void buildAnchor(String text, String href) {

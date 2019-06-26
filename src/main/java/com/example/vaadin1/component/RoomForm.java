@@ -3,6 +3,7 @@ package com.example.vaadin1.component;
 import com.example.vaadin1.entities.Room;
 import com.example.vaadin1.services.CourseService;
 import com.example.vaadin1.services.RoomService;
+import com.example.vaadin1.util.RefreshAware;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -32,17 +33,20 @@ public class RoomForm extends VerticalLayout {
     private Binder<Room> binder;
     private TextField name;
     private TextField level;
+    private RefreshAware refreshAware;
 
     @PostConstruct
     public void init(){
         binder = new Binder<>(Room.class);
+
+        name = new TextField("Name");
+        level = new TextField("Level");
+
         binder.forField ( this.level )
                 .withNullRepresentation ( " " )
                 .withConverter ( new StringToIntegerConverter( Integer.valueOf ( 0 ), "integers only" ) )
                 .bind ( Room:: getLevel, Room:: setLevel );
 
-        name = new TextField("Name");
-        level = new TextField("Level");
         add(name, level);
 
         HorizontalLayout buttonBar = new HorizontalLayout();
@@ -51,6 +55,7 @@ public class RoomForm extends VerticalLayout {
         saveBtn.addClickListener(event -> {
             roomService.saveOrUpdate(room);
             setVisible(false);
+            refreshAware.processRefresh();
             Notification.show("Success!");
         });
 
@@ -58,6 +63,7 @@ public class RoomForm extends VerticalLayout {
         deleteBtn.addClickListener(event -> {
             roomService.delete(room.getId());
             setVisible(false);
+            refreshAware.processRefresh();
             Notification.show("Success!");
         });
 
@@ -78,12 +84,18 @@ public class RoomForm extends VerticalLayout {
         room = new Room();
         binder.setBean(room);
         setVisible(true);
+        name.focus();
     }
 
     public void initEdit(int id) {
         this.room = roomService.getById(id);
         binder.setBean(room);
         setVisible(true);
+        name.focus();
+    }
+
+    public void setRefreshAware(RefreshAware refreshAware) {
+        this.refreshAware = refreshAware;
     }
 
 }

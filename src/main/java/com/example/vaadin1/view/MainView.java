@@ -1,10 +1,12 @@
 package com.example.vaadin1.view;
 
+import com.example.vaadin1.component.CourseForm;
 import com.example.vaadin1.component.RoomForm;
 import com.example.vaadin1.entities.Course;
 import com.example.vaadin1.entities.Room;
 import com.example.vaadin1.services.CourseService;
 import com.example.vaadin1.services.RoomService;
+import com.example.vaadin1.util.RefreshAware;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -15,7 +17,7 @@ import javax.annotation.PostConstruct;
 import java.util.List;
 
 @Route
-public class MainView extends AbstractView {
+public class MainView extends AbstractView implements RefreshAware {
     private CourseService courseService;
     private RoomService roomService;
 
@@ -26,6 +28,8 @@ public class MainView extends AbstractView {
 
     @Autowired
     private RoomForm roomForm;
+    @Autowired
+    private CourseForm courseForm;
 
     private Grid<Course> courseGrid;
     private Grid<Room> roomGrid;
@@ -40,7 +44,15 @@ public class MainView extends AbstractView {
         courseGrid.setItems(courses);
         courseGrid.addColumn(course -> course.getId()).setHeader("Azonosító");
         courseGrid.addColumn(course -> course.getName()).setHeader("Név");
-        add(courseGrid);
+        courseGrid.addColumn(course -> course.getRoom().getName()).setHeader("Terem");
+        courseGrid.asSingleSelect().addValueChangeListener(e -> {
+            if (e.getValue() != null) {
+                courseForm.initEdit(e.getValue().getId());
+            }
+        });
+        Button newBtnC = new Button("Új kurzus", VaadinIcon.PLUS.create());
+        newBtnC.addClickListener(event -> courseForm.initSave());
+        courseForm.setRefreshAware(this);
 
         roomGrid = new Grid<>();
         roomGrid.setItems(rooms);
@@ -52,15 +64,25 @@ public class MainView extends AbstractView {
                 roomForm.initEdit(e.getValue().getId());
             }
         });
-        Button newBtn= new Button("New", VaadinIcon.PLUS.create());
+        Button newBtn= new Button("Új terem", VaadinIcon.PLUS.create());
         newBtn.addClickListener(event -> roomForm.initSave());
-        add(newBtn);
-        add(roomGrid);
-        add(roomForm);
+        roomForm.setRefreshAware(this);
 
+        add(newBtnC);
+        add(newBtn);
+        add(courseForm);
+        add(roomForm);
+        add(courseGrid);
+        add(roomGrid);
 
     }
 
     public MainView(){
+    }
+
+    @Override
+    public void processRefresh() {
+        courseGrid.setItems(courseService.listAll());
+        roomGrid.setItems(roomService.listAll());
     }
 }
