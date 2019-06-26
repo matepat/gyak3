@@ -10,8 +10,8 @@ import javax.persistence.*;
 public class Course {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    int id;
-    String name;
+    private int id;
+    private String name;
     @ManyToOne
-    Room room;
+    private Room room;
 }
